@@ -1,4 +1,3 @@
-
 Week 2: Infrastructure Setup & Authentication/Registration Core
 Joint Team Task: Finalize project folder structure (/auth, /shop, /cart, /admin), write the shared PDO database connection (db.php), and execute the base SQL script in PHPMyAdmin.
 
