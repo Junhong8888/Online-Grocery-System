@@ -5,6 +5,10 @@
 
 session_start();
 
+// ============================================================================
+// PDO Initialization
+// ============================================================================
+
 $host     = 'localhost';
 $user     = 'root';
 $password = '';
@@ -18,7 +22,10 @@ $pdo = new PDO($dsn, $user, $password, [
     PDO::ATTR_EMULATE_PREPARES   => false,
 ]);
 
-// Helper functions
+
+// ============================================================================
+// Helper Function
+// ============================================================================
 function redirect($url) {
     header("Location: $url");
     exit();
