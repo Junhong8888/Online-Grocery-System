@@ -11,8 +11,7 @@ Member 3 (Cart, Checkout & Orders):
     [ ] Set up session initialization utilities for shopping cart data storage.
     [ ] Draft the cart interface layout.
 Member 4 (Member Maintenance & Security):
-    [ ] Build the 
-Member Registration form and server-side input validation script.
+    [ ] Build the Member Registration form and server-side input validation script.
     [ ] Implement base session role checks (
     Member vs. Admin).
 

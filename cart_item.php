@@ -1,10 +1,11 @@
 <?php
 session_start();
 
-// Initialize only once per session, not on every page load
 if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
+
+$isAjax = isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json');
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $productName = trim($_POST['productName'] ?? '');
@@ -16,15 +17,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         foreach ($_SESSION['cart'] as $i => $item) {
             if (is_array($item) && isset($item['name'], $item['quantity'])) {
                 if (strtolower(trim((string) $item['name'])) === strtolower($productName)) {
-                    $_SESSION['cart'][$i]['quantity'] = (int) $item['quantity'] + $productQty;
+                    $newQty = (int) $item['quantity'] + $productQty;
+
+                    if ($newQty <= 0) {
+                        unset($_SESSION['cart'][$i]);
+                        $_SESSION['cart'] = array_values($_SESSION['cart']);
+                    } else {
+                        $_SESSION['cart'][$i]['quantity'] = $newQty;
+                    }
+
                     $found = true;
                     break;
                 }
             }
         }
 
-        if (!$found) {
-            // Append with = (assignment operator) and [] (next index)
+        // Only create a new item when adding positive quantity
+        if (!$found && $productQty > 0) {
             $_SESSION['cart'][] = [
                 "name"     => $productName,
                 "quantity" => $productQty,
@@ -32,10 +41,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['cart' => $_SESSION['cart']]);
+        exit;
+    }
+
     header("Location: " . $_SERVER['PHP_SELF']);
     exit;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,18 +62,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body>
 
     <figure>
-        <img src="img/profile.png" alt="Apple" style="display: block;width:100px;height:100px;">
+        <img src="" alt="Apple" style="display: block;width:100px;height:100px;">
         <figcaption>Apple</figcaption>
         <form action="" method="post">
             <input type="hidden" name="productName" value="apple">
             <input type="hidden" name="productQty" value="1">
             <input type="submit" value="Add Apple">
-            <input type="submit" value="Remove Apple" id="rm_app">
+            <input type="button" value="Remove Apple" id="rm_app">
         </form>
     </figure>
 
     <figure>
-        <img src="img/profile.png" alt="Banana" style="display: block;width:100px;height:100px;">
+        <img src="" alt="Banana" style="display: block;width:100px;height:100px;">
         <figcaption>Banana</figcaption>
         <form action="" method="post">
             <input type="hidden" name="productName" value="banana">
@@ -68,9 +82,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <input type="submit" value="Remove Banana">
         </form>
     </figure>
-    <pre><?php var_dump($_SESSION); ?></pre>
-    <?php if (!empty($_SESSION['cart'])): ?>
-        <ul>
+
+    <ul id="cart-list">
+        <?php if (!empty($_SESSION['cart'])): ?>
             <?php foreach ($_SESSION['cart'] as $item): ?>
                 <?php if (is_array($item) && isset($item['name'], $item['quantity'])): ?>
                     <li>
@@ -78,28 +92,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </li>
                 <?php endif; ?>
             <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
-    <script>
-        $("#rm_app").click(function (e) {
-            e.preventDefault();
+        <?php endif; ?>
+    </ul>
 
+    <script>
+        function renderCart(cartItems) {
+            const $list = $("#cart-list");
+            $list.empty();
+
+            if (!Array.isArray(cartItems)) return;
+
+            cartItems.forEach(function (item) {
+                if (item && item.name !== undefined && item.quantity !== undefined) {
+                    const $li = $("<li>").text(`${item.name}, ${item.quantity}`);
+                    $list.append($li);
+                }
+            });
+        }
+
+        $("#rm_app").on("click", function () {
             const data = new URLSearchParams();
             data.append("productName", "apple");
             data.append("productQty", -1);
 
             fetch("cart_item.php", {
                 method: "POST",
+                headers: {
+                    "Accept": "application/json"
+                },
                 body: data
             })
             .then(function (response) {
                 if (!response.ok) {
                     throw new Error("HTTP error: " + response.status);
                 }
-                return response.text(); // <-- Call response.text() as a function
+                return response.json();
             })
-            .then(function (text) {
-                console.log("Server response:", text);
+            .then(function (result) {
+                renderCart(result.cart);
             })
             .catch(function (err) {
                 console.error("Fetch error:", err);

@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->execute([$target, $id]);
                 $msg = "Photo uploaded successfully.";
             } else {
-                $err = "Failed to upload file.";
+                echo "Not uploaded because of error #".$_FILES['photo']['error'];
             }
         }
     } else {
