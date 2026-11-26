@@ -29,10 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-
+<?php require '_head.php' ?>
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="css/style.css">
     <title>Login</title>
 </head>
 <body>
@@ -55,3 +56,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <p><a href="reset_password.php">Forgot Password?</a></p>
 </body>
 </html>
+
+<?php require '_foot.php' ?>

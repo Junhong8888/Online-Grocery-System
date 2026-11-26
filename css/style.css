@@ -8,6 +8,9 @@
 body {
     font-family: "Inter", sans-serif;
     background-color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 header {
@@ -15,15 +18,18 @@ header {
     border-bottom: 1px solid #f0f0f0; 
 }
 
+main,nav{
+    width: 90%;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
 nav {
     display: flex;
     flex-direction: row;
     align-items: center; 
     justify-content: center;
-    max-width: 1200px;
-    width: 90%;
     height: 76px; 
-    margin: 0 auto;
     gap: 1.5rem;
 }
 
@@ -93,4 +99,18 @@ nav {
 
 #authBtn:hover {
     background-color: #F9FAFB;
+}
+
+main {
+    flex: 1; 
+}
+
+footer {
+    width: 100%;
+    min-height: 50px;
+    background-color: lightgray;
+}
+
+footer p {
+    text-align: center;
 }
