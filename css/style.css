@@ -78,6 +78,12 @@ nav {
     font-size: 26px;
 }
 
+#cartBtn{
+    background-color: white;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+}
 
 #authBtn {
     display: flex;
@@ -108,9 +114,11 @@ main {
 footer {
     width: 100%;
     min-height: 50px;
-    background-color: lightgray;
+    background-color: #F4F4F5;
 }
 
 footer p {
     text-align: center;
 }
+
+
