@@ -51,6 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     exit;
 }
 ?>
+<?php require "_head.php" ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
