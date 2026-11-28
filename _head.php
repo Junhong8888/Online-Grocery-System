@@ -6,7 +6,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <link rel="stylesheet" href="css/style.css">
     <script src="https://code.jquery.com/jquery-4.1.0.min.js" integrity="sha256-hjRvPkFLO1JGZFMXGrzdpG6TlsHDyjp4PQeqLWRcMzk=" crossorigin="anonymous"></script>
     <script src="js/app.js" defer></script>
     <title>Willem Mart</title>
@@ -16,8 +16,39 @@
         <nav>
             <a href="index.php" id="logo">Willem Mart</a>
             <input type="search" name="searchBar" id="searchBar" placeholder="Search products...">
-            <a href="cart.php"><img src="images/cart.png" alt="cart" id="cart"></a>
+            <a id="modalBtn" class="button"><img src="images/cart.png" alt="cart" id="cart"></a>
 
+            
+            <!-- Shopping Cart Modal  -->
+            <div id="simpleModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4>My Cart</h4>
+                        <a class="closeBtn"><img src="images/cancel.png" alt="close"></a>
+                    </div>
+                    <div class="modal-body">
+                        <div class="cart_item">
+                            <img src="" alt="product">
+                            <p id="prod_desc">TOMATO 2KG -PEK</p>
+                            <p id="prod_price">RM10.50/Each</p>
+                            <div id="prod_input">
+                                <div id="option">
+                                    <input type="number" name="prod_qty" id="prod_qty">
+                                    <img src="images/delete.png" alt="delete" id="del">
+                                </div>
+                                <span>RM20.50</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <span>Total Payment: <span>RM15</span></span>
+                        <button>Checkout</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Authenticate Button -->
             <div class="auth-buttons">
                 <?php if (isset($_SESSION['role']) && strtolower($_SESSION['role']) === 'admin'): ?>
                     <a href="admin_members.php" class="btn-login">Manage Members</a>
