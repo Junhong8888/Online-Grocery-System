@@ -1,66 +1,107 @@
 <?php
 require '_base.php';
 
-$error = '';
-$success = '';
+if (is_logged_in()) {
+    redirect('index.php');
+}
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = trim($_POST['email']);
-    $pass1 = $_POST['new_password'];
-    $pass2 = $_POST['confirm_password'];
+$error    = '';
+$success  = '';
+$email    = '';
+$username = '';
 
-    if (empty($email) || empty($pass1) || empty($pass2)) {
-        $error = "Please fill in all fields.";
-    } else if ($pass1 != $pass2) {
-        $error = "Passwords do not match.";
-    } else if (strlen($pass1) < 6) {
-        $error = "Password must be at least 6 characters.";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
+    $email    = trim($_POST['email'] ?? '');
+    $username = trim($_POST['username'] ?? '');
+    $pass1    = $_POST['new_password'] ?? '';
+    $pass2    = $_POST['confirm_password'] ?? '';
+
+    if ($email === '' || $username === '' || $pass1 === '' || $pass2 === '') {
+        $error = 'Please fill in all fields.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
+    } elseif (
+        strlen($pass1) < 8 ||
+        !preg_match('/[A-Z]/', $pass1) ||
+        !preg_match('/[a-z]/', $pass1) ||
+        !preg_match('/[0-9]/', $pass1)
+    ) {
+        $error = 'New password must be at least 8 characters and include uppercase, lowercase, and a number.';
+    } elseif ($pass1 !== $pass2) {
+        $error = 'Passwords do not match.';
     } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
+        // Verify both email and username together (prevents unverified resets & email enumeration)
+        $stmt = $pdo->prepare("SELECT user_id, password_hash FROM users WHERE email = ? AND username = ?");
+        $stmt->execute([$email, $username]);
         $row = $stmt->fetch();
 
-        if ($row) {
-            $new_hash = password_hash($pass1, PASSWORD_DEFAULT);
-            $upd = $pdo->prepare("UPDATE users SET password_hash = ? WHERE email = ?");
-            $upd->execute([$new_hash, $email]);
-            $success = "Password reset successful. You can login now.";
+        if (!$row) {
+            $error = 'Account details could not be verified. Please check your email and username.';
+        } elseif (password_verify($pass1, $row['password_hash'])) {
+            $error = 'New password must be different from your current password.';
         } else {
-            $error = "Email does not exist.";
+            $new_hash = password_hash($pass1, PASSWORD_DEFAULT);
+            $upd = $pdo->prepare("UPDATE users SET password_hash = ? WHERE user_id = ?");
+            $upd->execute([$new_hash, $row['user_id']]);
+
+            $success  = 'Password reset successful! You can now log in with your new password.';
+            $email    = '';
+            $username = '';
         }
     }
 }
 ?>
+<?php require '_head.php'; ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Reset Password</title>
-</head>
-<body>
-    <h2>Reset Password</h2>
+<div class="auth-wrapper">
+    <div class="auth-card" style="max-width: 440px;">
+        <h2>Reset Password</h2>
+        <p class="auth-subtitle">Verify your email and username to set a new password.</p>
 
-    <?php if ($error != ''): ?>
-        <p style="color:red;"><?php echo $error; ?></p>
-    <?php endif; ?>
+        <?php if ($error !== ''): ?>
+            <div class="alert-error"><?= encode($error) ?></div>
+        <?php endif; ?>
 
-    <?php if ($success != ''): ?>
-        <p style="color:green;"><?php echo $success; ?></p>
-    <?php endif; ?>
+        <?php if ($success !== ''): ?>
+            <div class="alert-success"><?= encode($success) ?></div>
+        <?php endif; ?>
 
-    <form method="post">
-        <label>Email:</label><br>
-        <input type="email" name="email"><br><br>
+        <form method="post" novalidate>
+            <?= csrf_field() ?>
 
-        <label>New Password:</label><br>
-        <input type="password" name="new_password"><br><br>
+            <div class="form-group">
+                <label for="email">Registered Email Address</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com"
+                       value="<?= encode($email) ?>" required>
+            </div>
 
-        <label>Confirm Password:</label><br>
-        <input type="password" name="confirm_password"><br><br>
+            <div class="form-group">
+                <label for="username">Registered Username</label>
+                <input type="text" id="username" name="username" placeholder="Your username"
+                       value="<?= encode($username) ?>" required>
+            </div>
 
-        <button type="submit">Reset</button>
-    </form>
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="new_password"
+                       placeholder="Min. 8 chars (upper, lower, number)" required>
+            </div>
 
-    <p><a href="login.php">Back to Login</a></p>
-</body>
-</html>
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password"
+                       placeholder="Re-enter new password" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Reset Password</button>
+        </form>
+
+        <div class="auth-footer">
+            <a href="login.php">&larr; Back to Login</a>
+        </div>
+    </div>
+</div>
+
+<?php require '_foot.php'; ?>
